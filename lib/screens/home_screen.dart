@@ -9,15 +9,28 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   SharedPreferences? _prefs; 
+  List<Map<String, dynamic>> _topics = [];
 
   @override
   void initState() {
     super.initState();
     _initSharedPreferences();
+    _loadTopics();
   }
 
   Future<void> _initSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
+  }
+
+   Future<void> _loadTopics() async {
+    try {
+      List<Map<String, dynamic>> topics = await QuizService.getTopics();
+      setState(() {
+        _topics = topics;
+      });
+    } catch (e) {
+      print('Error loading topics: $e');
+    }
   }
 
   @override
@@ -85,6 +98,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                 ),
+                 SizedBox(height: 10.0),
+                _buildTopicList(),
               ],
             ),
           ),
@@ -93,6 +108,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+Widget _buildTopicList() {
+    if (_topics.isEmpty) {
+      return Text('No topics available');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Select a Topic:',
+          style: TextStyle(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 10.0),
+        ListView.builder(
+          shrinkWrap: true,
+          itemCount: _topics.length,
+          itemBuilder: (context, index) {
+            String topicName = _topics[index]['name'];
+            return ElevatedButton(
+              onPressed: () {
+                _navigateToQuestionPage(_topics[index]);
+              },
+              child: Text(topicName),
+            );
+          },
+        ),
+      ],
+    );
+  }
 
   void _practiceNotGoodTopics(BuildContext context) async {
     bool isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
@@ -111,6 +158,15 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
   }
+
+   void _navigateToQuestionPage(Map<String, dynamic> topic) {
+    Navigator.pushNamed(
+      context,
+      '/question',
+      arguments: {'topic': topic},
+    );
+  }
+
 
   Map<String, dynamic> _findLeastKnownTopic(List<Map<String, dynamic>> topics) {
     Map<String, dynamic> leastKnownTopic = {};
