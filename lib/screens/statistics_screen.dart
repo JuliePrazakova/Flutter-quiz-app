@@ -19,7 +19,7 @@ class StatisticsScreen extends StatelessWidget {
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: _loadStatistics(),
-        builder: (context, snapshot) {
+        builder: (context, AsyncSnapshot<Map<String, dynamic>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return CircularProgressIndicator();
           } else if (snapshot.hasError) {
@@ -30,35 +30,34 @@ class StatisticsScreen extends StatelessWidget {
               totalCorrectAnswers = 0;
             }
             Map<String, int> topicStatistics = snapshot.data!['topicStatistics'];
+            
+            return FutureBuilder<List<Map<String, dynamic>>>(
+              future: QuizService.getTopics(),
+              builder: (context, topicSnapshot) {
+                if (topicSnapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (topicSnapshot.hasError) {
+                  return Text('Error loading topics');
+                } else {
+                  List<Map<String, dynamic>> sortedTopics = topicSnapshot.data!;
+                  sortedTopics.sort((a, b) => topicStatistics[b['name']]!.compareTo(topicStatistics[a['name']]!));
 
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Total Correct Answers: $totalCorrectAnswers'),
-                  FutureBuilder<List<Map<String, dynamic>>>(
-                    future: QuizService.getTopics(),
-                    builder: (context, topicSnapshot) {
-                      if (topicSnapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
-                      } else if (topicSnapshot.hasError) {
-                        return Text('Error loading topics');
-                      } else {
-                        List<String> topicNames = topicSnapshot.data!
-                            .map<String>((topic) => topic['name'] as String)
-                            .toList();
-
-                        return Column(
-                          children: topicNames
-                              .map((topicName) =>
-                                  Text('$topicName: ${topicStatistics[topicName]} correct answers'))
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Total Correct Answers: $totalCorrectAnswers'),
+                        Column(
+                          children: sortedTopics
+                              .map((topic) =>
+                                  Text('${topic['name']}: ${topicStatistics[topic['name']]} correct answers'))
                               .toList(),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              },
             );
           }
         },
