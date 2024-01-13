@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     }
                   },
                 ),
-                 SizedBox(height: 10.0),
+                 SizedBox(height: 40.0),
                 _buildTopicList(),
               ],
             ),
@@ -124,9 +124,10 @@ Widget _buildTopicList() {
           ),
         ),
         SizedBox(height: 10.0),
-        ListView.builder(
+        ListView.separated(
           shrinkWrap: true,
           itemCount: _topics.length,
+          separatorBuilder: (context, index) => SizedBox(height: 8.0),
           itemBuilder: (context, index) {
             String topicName = _topics[index]['name'];
             return ElevatedButton(
