@@ -26,6 +26,9 @@ class StatisticsScreen extends StatelessWidget {
             return Text('Error loading statistics');
           } else {
             int totalCorrectAnswers = snapshot.data!['totalCorrectAnswers'] - 1;
+            if(totalCorrectAnswers == -1){
+              totalCorrectAnswers = 0;
+            }
             Map<String, int> topicStatistics = snapshot.data!['topicStatistics'];
 
             return Center(
