@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/quiz_service.dart';
+import 'dart:math';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -182,22 +183,25 @@ Widget _buildTopicList() {
     );
   }
 
-
   Map<String, dynamic> _findLeastKnownTopic(List<Map<String, dynamic>> topics) {
-    Map<String, dynamic> leastKnownTopic = {};
-    int searchedNumber = 0;
+    List<Map<String, dynamic>> leastKnownTopics = [];
+    double minCorrectAnswers = double.infinity;
 
-    while (true) {
-      for (var topic in topics) {
-        String topicName = topic['name'];
-        int correctAnswers = _prefs?.getInt('topic_$topicName') ?? 0;
+    for (var topic in topics) {
+      String topicName = topic['name'];
+      int correctAnswers = _prefs?.getInt('topic_$topicName') ?? 0;
 
-        if (correctAnswers == searchedNumber) {
-          leastKnownTopic = topic;
-          return leastKnownTopic; 
-        }
+      if (correctAnswers < minCorrectAnswers) {
+        minCorrectAnswers = correctAnswers.toDouble();
+        leastKnownTopics = [topic];
+      } else if (correctAnswers == minCorrectAnswers) {
+        leastKnownTopics.add(topic);
       }
-      searchedNumber++;
     }
+
+    final random = Random();
+    int randomIndex = random.nextInt(leastKnownTopics.length);
+
+    return leastKnownTopics[randomIndex];
   }
 }
