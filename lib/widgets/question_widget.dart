@@ -140,21 +140,24 @@ class _QuestionWidgetState extends State<QuestionWidget> {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.all(10.0),
+          padding: EdgeInsets.all(5.0),
           child: Text(_questionData!['question']),
         ),
         Column(
           children: List.generate(
             _questionData!['options'].length,
             (index) => Padding(
-              padding: EdgeInsets.all(10.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  if (!_isAnswerCorrect) {
-                    _submitAnswer(_questionData!['options'][index]);
-                  }
-                },
-                child: Text(_questionData!['options'][index]),
+              padding: EdgeInsets.symmetric(vertical: 4.0), 
+              child: Container(
+                width: 200.0, 
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (!_isAnswerCorrect) {
+                      _submitAnswer(_questionData!['options'][index]);
+                    }
+                  },
+                  child: Text(_questionData!['options'][index]),
+                ),
               ),
             ),
           ),
@@ -168,7 +171,6 @@ class _QuestionWidgetState extends State<QuestionWidget> {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Allow the user to move to the next question if the answer is correct.
                   _loadQuestion();
                 },
                 child: Text('Move to the next question'),

@@ -32,9 +32,11 @@ class _QuestionScreenState extends State<QuestionScreen> {
           ),
         ],
       ),
-      body: Center(
+      body: Container(
+        alignment: Alignment.topCenter, 
+        margin: EdgeInsets.only(top: 200.0), 
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start, 
           children: [
             Text(
               widget.topic['name'],
