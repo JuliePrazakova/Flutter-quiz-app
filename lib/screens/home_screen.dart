@@ -10,16 +10,31 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   SharedPreferences? _prefs; 
   List<Map<String, dynamic>> _topics = [];
+  late String _buttonText;
 
   @override
   void initState() {
     super.initState();
     _initSharedPreferences();
     _loadTopics();
+    _isGenericOn();
   }
 
   Future<void> _initSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
+  }
+
+   void _isGenericOn() {
+    bool isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
+    if(isGenericOn){
+      setState(() {
+        _buttonText = "Turn off generic practice";
+      });
+    } else{
+      setState(() {
+        _buttonText = "Generic practice";
+      });
+    }
   }
 
    Future<void> _loadTopics() async {
@@ -77,23 +92,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 FutureBuilder<bool>(
                   future: SharedPreferences.getInstance().then((prefs) => prefs.getBool('isGenericOn') ?? false),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      // Return a loading indicator if the data is still being fetched.
-                      return CircularProgressIndicator();
-                    } else if (snapshot.hasError) {
-                      // Handle errors if any.
+                    if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
                     } else {
-                      // Access the value from the snapshot and build the button accordingly.
                       bool isGenericOn = snapshot.data ?? false;
 
                       return ElevatedButton(
                         onPressed: () {
                           _practiceNotGoodTopics(context);
                         },
-                        child: Text(
-                          isGenericOn ? "Turn off generic practice" : "Generic Practice",
-                        ),
+                        child: Text(_buttonText),
                       );
                     }
                   },
@@ -144,14 +152,17 @@ Widget _buildTopicList() {
 
   void _practiceNotGoodTopics(BuildContext context) async {
     bool isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
-    print(isGenericOn);
 
     if (isGenericOn) {
       await _prefs?.setBool('isGenericOn', false);
-      print(isGenericOn);
+      setState(() {
+        _buttonText = "Generic practice";
+      });
     } else {
       await _prefs?.setBool('isGenericOn', true);
-      print(isGenericOn);
+      setState(() {
+        _buttonText = "Turn off generic practice";
+      });
       List<Map<String, dynamic>> topics = await QuizService.getTopics();
       Map<String, dynamic> foundTopic = _findLeastKnownTopic(topics);
 
