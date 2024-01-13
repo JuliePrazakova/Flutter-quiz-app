@@ -38,10 +38,6 @@ class _QuestionScreenState extends State<QuestionScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start, 
           children: [
-            Text(
-              widget.topic['name'],
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-            ),
             QuestionWidget(topic: widget.topic),
           ],
         ),

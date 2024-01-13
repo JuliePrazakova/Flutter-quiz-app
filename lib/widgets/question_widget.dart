@@ -13,15 +13,18 @@ class QuestionWidget extends StatefulWidget {
 
 class _QuestionWidgetState extends State<QuestionWidget> {
   Map<String, dynamic>? _questionData;
+  late Map<String, dynamic> _topic;
   bool _isAnswerSubmitted = false;
   bool _isAnswerCorrect = false;
   bool _isFirstAnswer = true;
+  bool _isGenericOn = false;
 
   SharedPreferences? _prefs; 
 
   @override
   void initState() {
     super.initState();
+    _topic = widget.topic;
     _initSharedPreferences();
     _loadQuestion();
     _loadUserProgress();
@@ -34,6 +37,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   void _loadUserProgress() async {
     _isFirstAnswer = _prefs?.getBool('isFirstAnswer') ?? true;
     _isAnswerCorrect = _prefs?.getBool('isAnswerCorrect') ?? false;
+    _isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
   }
 
   void _loadQuestion() async {
@@ -47,39 +51,15 @@ class _QuestionWidgetState extends State<QuestionWidget> {
     try {
         if (_prefs?.getBool('isGenericOn') == true) {
           List<Map<String, dynamic>> topics = await QuizService.getTopics();
-            Map<String, dynamic> leastKnownTopic = {};
-            int searchedNumber = 0;
-            print(topics);
-            while (searchedNumber < 100) {
-              bool shouldBreak = false;
-
-              for (var topic in topics) {
-                String topicName = topic['name'];
-                print(topicName);
-                int correctAnswers = _prefs?.getInt('topic_$topicName') ?? 0;
-
-                if (correctAnswers == searchedNumber) {
-                  print(searchedNumber);
-                  Map<String, dynamic> questionData = await QuizService.getQuestion(topic);
-                  print("question data $questionData");
-                  setState(() {
-                    _questionData = questionData;
-                    _prefs?.setBool('isFirstAnswer', true);
-                  });
-                  shouldBreak = true;
-                  break;
-                }
-                print(searchedNumber);
-              }
-
-              if (shouldBreak) {
-                break;
-              }
-
-              searchedNumber++;
-            }      
+          Map<String, dynamic> foundTopic = _findLeastKnownTopic(topics);
+          Map<String, dynamic> questionData = await QuizService.getQuestion(foundTopic);
+          setState(() {
+            _topic = foundTopic;
+            _questionData = questionData;
+            _prefs?.setBool('isFirstAnswer', true);
+          });   
         } else {
-          Map<String, dynamic> questionData = await QuizService.getQuestion(widget.topic);
+          Map<String, dynamic> questionData = await QuizService.getQuestion(_topic);
           setState(() {
             _questionData = questionData;
             _prefs?.setBool('isFirstAnswer', true);
@@ -93,7 +73,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   void _submitAnswer(String answer) async {
     try {
       Map<String, dynamic> response = await QuizService.postAnswer(
-        widget.topic['id'].toString(),
+        _topic['id'].toString(),
         _questionData!['id'],
         answer,
       );
@@ -109,7 +89,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
             totalCorrectAnswers++;
             _prefs?.setInt('totalCorrectAnswers', totalCorrectAnswers);
 
-            String topicName = widget.topic['name'];
+            String topicName = _topic['name'];
             int topicCorrectAnswers = _prefs?.getInt('topic_$topicName') ?? 0;
             topicCorrectAnswers++;
             _prefs?.setInt('topic_$topicName', topicCorrectAnswers);
@@ -139,6 +119,10 @@ class _QuestionWidgetState extends State<QuestionWidget> {
 
     return Column(
       children: [
+        Text(
+          _topic['name'],
+          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+        ),
         Padding(
           padding: EdgeInsets.all(5.0),
           child: Text(_questionData!['question']),
@@ -184,5 +168,23 @@ class _QuestionWidgetState extends State<QuestionWidget> {
           ),
       ],
     );
+  }
+
+   Map<String, dynamic> _findLeastKnownTopic(List<Map<String, dynamic>> topics) {
+    Map<String, dynamic> leastKnownTopic = {};
+    int searchedNumber = 0;
+
+    while (true) {
+      for (var topic in topics) {
+        String topicName = topic['name'];
+        int correctAnswers = _prefs?.getInt('topic_$topicName') ?? 0;
+
+        if (correctAnswers == searchedNumber) {
+          leastKnownTopic = topic;
+          return leastKnownTopic; 
+        }
+      }
+      searchedNumber++;
+    }
   }
 }

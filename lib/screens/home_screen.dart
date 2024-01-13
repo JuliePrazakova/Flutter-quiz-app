@@ -144,11 +144,14 @@ Widget _buildTopicList() {
 
   void _practiceNotGoodTopics(BuildContext context) async {
     bool isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
+    print(isGenericOn);
 
     if (isGenericOn) {
       await _prefs?.setBool('isGenericOn', false);
+      print(isGenericOn);
     } else {
       await _prefs?.setBool('isGenericOn', true);
+      print(isGenericOn);
       List<Map<String, dynamic>> topics = await QuizService.getTopics();
       Map<String, dynamic> foundTopic = _findLeastKnownTopic(topics);
 
