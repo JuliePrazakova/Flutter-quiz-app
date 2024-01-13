@@ -128,6 +128,8 @@ class _QuestionWidgetState extends State<QuestionWidget> {
           padding: EdgeInsets.all(5.0),
           child: Text(_questionData!['question']),
         ),
+        if (_questionData!['image_url'] != null) // Check if image URL is available
+        Image.network(_questionData!['image_url']), // Display the image
         Column(
           children: List.generate(
             _questionData!['options'].length,

@@ -34,7 +34,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
       ),
       body: Container(
         alignment: Alignment.topCenter, 
-        margin: EdgeInsets.only(top: 200.0), 
+        margin: EdgeInsets.only(top: 100.0), 
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start, 
           children: [
