@@ -36,7 +36,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# Exclude everything in the root directory except the build/web directory
-/*
-!/build/web/
