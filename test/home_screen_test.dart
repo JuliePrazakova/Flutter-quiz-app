@@ -2,12 +2,8 @@ import 'package:Quiz_app/screens/home_screen.dart';
 import 'package:Quiz_app/services/quiz_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:nock/nock.dart';
 import 'package:http/http.dart' as http;
-
-import 'fetch_topics_test.mocks.dart';
-
 
 void main() {
   setUpAll(() {
@@ -31,10 +27,10 @@ void main() {
     expect(find.text('Quiz App'), findsOneWidget);
 
     final description = find.text('Welcome to Quiz App! Challenge yourself by selecting a topic below. '
-        'Each topic offers a set of questions to test your knowledge. '
-        'For an extra challenge, try the "Generic Practice" option. This feature intelligently '
-        'selects topics with the fewest correct answers, helping you strengthen your weak areas. '
-        'Are you ready to embark on a learning adventure?',
+          'Each topic offers a set of questions to test your knowledge. '
+          'For an extra challenge, try the "Generic Practice" option. This feature intelligently '
+          'selects topics with the fewest correct answers and generates its question. After each question it revaluates and chooses again the least succesful one helping you strengthen your weak areas. '
+          'Are you ready to embark on a learning adventure?',
         );
     expect(description, findsOneWidget);
     
@@ -55,7 +51,6 @@ void main() {
         await tester.pumpWidget(app);
         await tester.pump();
 
-        // Access the state of HomeScreen and update the topics
         tester.state<HomeScreenState>(find.byType(HomeScreen)).updateTopics(topics);
 
         await tester.pump();
@@ -65,7 +60,6 @@ void main() {
 
         expect(find.text('No topics available'), findsOne);
   });
-
     testWidgets('Displays topics', (tester) async {
       nock.get('/topics').reply(200, [
         {"id": 1, "name": "Basic arithmetics", "question_path": "/topics/1/questions"},
@@ -85,7 +79,6 @@ void main() {
         await tester.pumpWidget(app);
         await tester.pump();
 
-        // Access the state of HomeScreen and update the topics
         tester.state<HomeScreenState>(find.byType(HomeScreen)).updateTopics(topics);
 
         await tester.pump();

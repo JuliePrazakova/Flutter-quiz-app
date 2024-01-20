@@ -53,7 +53,6 @@ class StatisticsScreen extends StatelessWidget {
       future: loadTopics(quizService),
       builder: (context, topicSnapshot) {
         if (topicSnapshot.connectionState == ConnectionState.waiting) {
-          print('KURVAAAAAA');
           return const CircularProgressIndicator();
         } else if (topicSnapshot.hasError) {
           return const Text('Error loading topics');
@@ -88,7 +87,7 @@ class StatisticsScreen extends StatelessWidget {
 
     QuizService quizService = QuizService();
     List<Map<String, dynamic>> topics = await quizService.getTopics(http.Client()); 
-    // Load topic-specific statistics
+
     for (Map<String, dynamic> topic in topics) {
       String topicName = topic['name'];
       int correctAnswersForTopic = prefs.getInt('topic_$topicName') ?? 0;

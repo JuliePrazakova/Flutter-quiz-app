@@ -75,26 +75,27 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Center(
+      body: SingleChildScrollView(
+        child: Center (
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 16.0), 
           child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.7, // Adjust the width as needed
+            width: MediaQuery.of(context).size.width * 0.7, 
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(30.0),
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10.0),
                     decoration: BoxDecoration(
                       color: Colors.blue,
-                      borderRadius: BorderRadius.circular(10.0), // Optional: Add border radius for rounded corners
+                      borderRadius: BorderRadius.circular(10.0), 
                     ),
                     child: const Text(
                       'Welcome to Quiz App! Challenge yourself by selecting a topic below. '
                       'Each topic offers a set of questions to test your knowledge. '
                       'For an extra challenge, try the "Generic Practice" option. This feature intelligently '
-                      'selects topics with the fewest correct answers, helping you strengthen your weak areas. '
+                      'selects topics with the fewest correct answers and generates its question. After each question it revaluates and chooses again the least succesful one helping you strengthen your weak areas. '
                       'Are you ready to embark on a learning adventure?',
                       style: TextStyle(
                         fontSize: 16.0, 
@@ -124,6 +125,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+        ),
         ),
       ),
     );

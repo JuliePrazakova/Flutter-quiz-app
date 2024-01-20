@@ -46,12 +46,10 @@ class QuizService {
     http.Client client
   ) async {
     try {
-      print('posting ANSWEEEEEEEEEEEEER');
       final response = await client.post(
         Uri.parse('https://dad-quiz-api.deno.dev/topics/$topicId/questions/$questionId/answers'), 
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode({"answer": answer})); 
-        print('ODPOVED PICOOOOOOOO: ${response.body}');
 
       Map<String, dynamic> responseData = Map<String, dynamic>.from(json.decode(response.body));
 
@@ -68,7 +66,7 @@ class QuizService {
       return responseData;
     } catch (error) {
       print('Error posting answer: $error');
-      return {}; // Return an empty map or handle the error as needed
+      return {};
     }
   }
 
@@ -92,7 +90,6 @@ class QuizService {
   Future<int?> getTopicId(String topicName) async {
     try {
       List<Map<String, dynamic>> topics = await getTopics(http.Client());
-      print('All topics: $topics');
       
       int topicIndex = topics.indexWhere((topic) => topic['name'] == topicName);
       if (topicIndex != -1) {

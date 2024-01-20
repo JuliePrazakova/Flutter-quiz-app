@@ -1,5 +1,3 @@
-// test/quiz_service_test.dart
-
 import 'package:Quiz_app/screens/statistics_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,11 +5,9 @@ import 'package:mockito/mockito.dart';
 import 'package:nock/nock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Quiz_app/services/quiz_service.dart';
-import 'package:Quiz_app/screens/home_screen.dart';
 import 'package:http/http.dart' as http;
 
 
-// Mock class for SharedPreferences
 class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
@@ -34,7 +30,7 @@ void main() {
         ]);
 
           final SharedPreferences testSharedPreferences = await SharedPreferences.getInstance();
-          testSharedPreferences.setInt('totalCorrectAnswers', 10); // Set your test data
+          testSharedPreferences.setInt('totalCorrectAnswers', 10);
           testSharedPreferences.setInt('topic_Basic arithmetics', 5);
           testSharedPreferences.setInt('topic_Countries and capitals', 8);
           testSharedPreferences.setInt('topic_Countries and continents', 8);
@@ -50,9 +46,7 @@ void main() {
           );
           
           await tester.pumpWidget(app);
-          print('Before pumpAndSettle');
           await tester.pumpAndSettle();
-          print('After pumpAndSettle');
 
           expect(find.text('Quiz App'), findsOneWidget);
           expect(find.byIcon(Icons.home), findsOneWidget);
