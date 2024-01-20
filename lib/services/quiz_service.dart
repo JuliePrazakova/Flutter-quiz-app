@@ -1,11 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dio/dio.dart';
 import 'dart:convert';
 
 class QuizService {
   static SharedPreferences? _prefs;
-  final Dio _dio = Dio();
 
   Future<List<Map<String, dynamic>>> getTopics(http.Client client) async {
     try {
@@ -29,7 +27,6 @@ class QuizService {
       final response = await client.get(Uri.parse('https://dad-quiz-api.deno.dev$questionPath'));
      
       if (response.statusCode == 200) {
-        print(response.body);
         Map<String, dynamic> question = Map<String, dynamic>.from(json.decode(response.body));
         return question;
       } else {

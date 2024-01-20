@@ -25,6 +25,22 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+   testWidgets("Display QuestionScreen with Title and 2 Icon Buttons", (WidgetTester tester) async {
+        Map<String, dynamic> topic = {"id": 1, "name": "Basic arithmetics", "question_path": "/topics/1/questions"};
+
+        final app = MaterialApp(
+          home: QuestionScreen(topic: topic),
+        );
+
+        await tester.pumpWidget(app);
+
+        expect(find.text('Quiz App'), findsOneWidget);
+
+        expect(find.byIcon(Icons.home), findsOneWidget);
+
+        expect(find.byIcon(Icons.bar_chart), findsOneWidget);
+  });
+
     testWidgets('Displays question', (tester) async {
        SharedPreferences.setMockInitialValues({
           'isAnswerSubmitted': false,

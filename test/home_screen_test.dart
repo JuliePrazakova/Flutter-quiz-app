@@ -92,6 +92,7 @@ void main() {
 
         final topicFinder = find.widgetWithText(ElevatedButton,'Generic practice');
         expect(topicFinder, findsOneWidget);
+        expect(find.text('Select a Topic:'), findsOneWidget);
 
         expect(find.widgetWithText(ElevatedButton, 'Basic arithmetics'), findsOneWidget);
         expect(find.widgetWithText(ElevatedButton, 'Countries and capitals'), findsOneWidget);
