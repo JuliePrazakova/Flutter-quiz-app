@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import '../widgets/question_widget.dart';
-import '../services/quiz_service.dart';
 
 class QuestionScreen extends StatefulWidget {
   final Map<String, dynamic> topic;
 
-  QuestionScreen({required this.topic});
+  const QuestionScreen({Key? key, required this.topic}) : super(key: key);
 
   @override
   _QuestionScreenState createState() => _QuestionScreenState();
@@ -16,16 +15,16 @@ class _QuestionScreenState extends State<QuestionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Quiz App'),
+        title: const Text('Quiz App'),
         actions: [
           IconButton(
-            icon: Icon(Icons.home),
+            icon: const Icon(Icons.home),
             onPressed: () {
               Navigator.popUntil(context, ModalRoute.withName('/'));
             },
           ),
           IconButton(
-            icon: Icon(Icons.bar_chart),
+            icon: const Icon(Icons.bar_chart),
             onPressed: () {
               Navigator.pushNamed(context, '/statistics');
             },
@@ -34,7 +33,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
       ),
       body: Container(
         alignment: Alignment.topCenter, 
-        margin: EdgeInsets.only(top: 100.0), 
+        margin: const EdgeInsets.only(top: 100.0), 
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start, 
           children: [

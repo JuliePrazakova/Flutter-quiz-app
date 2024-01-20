@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/quiz_service.dart';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   SharedPreferences? _prefs; 
   List<Map<String, dynamic>> _topics = [];
   late String _buttonText;
@@ -38,9 +42,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void updateTopics(List<Map<String, dynamic>> newTopics) {
+    setState(() {
+      _topics = newTopics;
+    });
+  }
+
    Future<void> _loadTopics() async {
     try {
-      List<Map<String, dynamic>> topics = await QuizService.getTopics();
+      QuizService quizService = QuizService();
+
+      List<Map<String, dynamic>> topics = await quizService.getTopics(http.Client());
       setState(() {
         _topics = topics;
       });
@@ -53,10 +65,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Quiz App'),
+        title: const Text('Quiz App'),
         actions: [
           IconButton(
-            icon: Icon(Icons.bar_chart),
+            icon: const Icon(Icons.bar_chart),
             onPressed: () {
               Navigator.pushNamed(context, '/statistics');
             },
@@ -66,50 +78,50 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Container(
+          child: SizedBox(
             width: MediaQuery.of(context).size.width * 0.7, // Adjust the width as needed
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(30.0),
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(10.0), // Optional: Add border radius for rounded corners
-                  ),
-                  child: Text(
-                    'Welcome to Quiz App! Challenge yourself by selecting a topic below. '
-                    'Each topic offers a set of questions to test your knowledge. '
-                    'For an extra challenge, try the "Generic Practice" option. This feature intelligently '
-                    'selects topics with the fewest correct answers, helping you strengthen your weak areas. '
-                    'Are you ready to embark on a learning adventure?',
-                    style: TextStyle(
-                      fontSize: 16.0, 
-                      color: Colors.white,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(30.0),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(10.0), // Optional: Add border radius for rounded corners
+                    ),
+                    child: const Text(
+                      'Welcome to Quiz App! Challenge yourself by selecting a topic below. '
+                      'Each topic offers a set of questions to test your knowledge. '
+                      'For an extra challenge, try the "Generic Practice" option. This feature intelligently '
+                      'selects topics with the fewest correct answers, helping you strengthen your weak areas. '
+                      'Are you ready to embark on a learning adventure?',
+                      style: TextStyle(
+                        fontSize: 16.0, 
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 10.0),
-                FutureBuilder<bool>(
-                  future: SharedPreferences.getInstance().then((prefs) => prefs.getBool('isGenericOn') ?? false),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else {
-                      bool isGenericOn = snapshot.data ?? false;
-
-                      return ElevatedButton(
-                        onPressed: () {
-                          _practiceNotGoodTopics(context);
-                        },
-                        child: Text(_buttonText),
-                      );
-                    }
-                  },
-                ),
-                 SizedBox(height: 40.0),
-                _buildTopicList(),
-              ],
+                  const SizedBox(height: 10.0),
+                  FutureBuilder<bool>(
+                    future: SharedPreferences.getInstance().then((prefs) => prefs.getBool('isGenericOn') ?? false),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        return ElevatedButton(
+                          onPressed: () {
+                            _practiceNotGoodTopics(context);
+                          },
+                          child: Text(_buttonText),
+                        );
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 40.0),
+                  _buildTopicList(),
+                ],
+              ),
             ),
           ),
         ),
@@ -119,24 +131,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
 Widget _buildTopicList() {
     if (_topics.isEmpty) {
-      return Text('No topics available');
+      return const Text('No topics available');
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Select a Topic:',
           style: TextStyle(
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         ListView.separated(
           shrinkWrap: true,
           itemCount: _topics.length,
-          separatorBuilder: (context, index) => SizedBox(height: 8.0),
+          separatorBuilder: (context, index) => const SizedBox(height: 8.0),
           itemBuilder: (context, index) {
             String topicName = _topics[index]['name'];
             return ElevatedButton(
@@ -150,32 +162,7 @@ Widget _buildTopicList() {
       ],
     );
   }
-
-  void _practiceNotGoodTopics(BuildContext context) async {
-    bool isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
-
-    if (isGenericOn) {
-      await _prefs?.setBool('isGenericOn', false);
-      setState(() {
-        _buttonText = "Generic practice";
-      });
-    } else {
-      await _prefs?.setBool('isGenericOn', true);
-      setState(() {
-        _buttonText = "Turn off generic practice";
-      });
-      List<Map<String, dynamic>> topics = await QuizService.getTopics();
-      Map<String, dynamic> foundTopic = _findLeastKnownTopic(topics);
-
-      Navigator.pushNamed(
-        context,
-        '/question',
-        arguments: {'topic': foundTopic},
-      );
-    }
-  }
-
-   void _navigateToQuestionPage(Map<String, dynamic> topic) {
+  void _navigateToQuestionPage(Map<String, dynamic> topic) {
     Navigator.pushNamed(
       context,
       '/question',
@@ -203,5 +190,27 @@ Widget _buildTopicList() {
     int randomIndex = random.nextInt(leastKnownTopics.length);
 
     return leastKnownTopics[randomIndex];
+  }
+
+  void _practiceNotGoodTopics(BuildContext context) async {
+    bool isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
+
+    if (isGenericOn) {
+      await _prefs?.setBool('isGenericOn', false);
+      setState(() {
+        _buttonText = "Generic practice";
+      });
+    } else {
+      await _prefs?.setBool('isGenericOn', true);
+      setState(() {
+        _buttonText = "Turn off generic practice";
+      });
+      QuizService quizService = QuizService();
+
+      List<Map<String, dynamic>> topics = await quizService.getTopics(http.Client());
+      Map<String, dynamic> foundTopic = _findLeastKnownTopic(topics);
+
+      _navigateToQuestionPage(foundTopic);
+    }
   }
 }
