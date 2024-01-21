@@ -114,7 +114,7 @@ class QuestionWidgetState extends State<QuestionWidget> {
         }
 
         _prefs?.setBool('isAnswerSubmitted', _isAnswerSubmitted);
-        _prefs?.setBool('isAnswerCorrect', _isAnswerCorrect!);
+        _prefs?.setBool('isAnswerCorrect', _isAnswerCorrect);
 
       });
     } catch (error) {
