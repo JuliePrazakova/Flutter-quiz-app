@@ -38,7 +38,7 @@ void main() {
   });
 
 // test number 2 and 3 together
-    testWidgets('Displays question', (tester) async {
+    testWidgets('Displays question correct answer', (tester) async {
        SharedPreferences.setMockInitialValues({
           'isAnswerSubmitted': false,
           'isAnswerCorrect': false,
@@ -92,5 +92,60 @@ void main() {
         expect(textFinder, findsOneWidget);
 
         expect(find.widgetWithText(ElevatedButton, 'Move to the next question'), findsOneWidget);
+      });      
+
+      testWidgets('Displays question wrong answer', (tester) async {
+       SharedPreferences.setMockInitialValues({
+          'isAnswerSubmitted': false,
+          'isAnswerCorrect': false,
+        });
+       nock.get('/topics/1/questions').reply(200, 
+          {
+            "id": 1,
+            "question": "What is the outcome of 10 + 10?",
+            "options": ["20", "2", "200", "95"],
+            "answer_post_path": "/topics/1/questions/1/answers"
+          }
+        );
+        nock.post("/topics/1/questions/1/answers", {"answer": "2"})
+          .reply(200, {"correct": false});
+
+        Map<String, dynamic> topic = {"id": 1, "name": "Basic arithmetics", "question_path": "/topics/1/questions"};
+        final quizService = QuizService();
+
+        final client = http.Client();
+        final question = await quizService.getQuestion(topic, client);
+        expect(question, isA<Map<String, dynamic>>());
+
+        final app = MaterialApp(
+          home: QuestionWidget(topic: topic),
+        );
+        await tester.pumpWidget(app);
+        await tester.pump();
+        
+        tester.state<QuestionWidgetState>(find.byType(QuestionWidget)).updateQuestion(question);
+        await tester.pump();
+        expect(find.byType(ElevatedButton), findsNWidgets(4));
+
+        final topicFinder = find.text('What is the outcome of 10 + 10?');
+        expect(topicFinder, findsOneWidget);
+
+        expect(find.widgetWithText(ElevatedButton, '20'), findsOneWidget);
+        expect(find.widgetWithText(ElevatedButton, '2'), findsOneWidget);
+        expect(find.widgetWithText(ElevatedButton, '200'), findsOneWidget);
+        expect(find.widgetWithText(ElevatedButton, '95'), findsOneWidget);
+
+        await tester.tap(find.text('20'));
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setBool('isAnswerSubmitted', true);
+        prefs.setBool('isAnswerCorrect', false);
+
+        await tester.pumpAndSettle();
+        await tester.pump();
+
+
+        final textFinder = find.text('Your answer was incorrect');
+        expect(textFinder, findsOneWidget);
+
       });      
 }
