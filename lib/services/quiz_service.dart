@@ -1,46 +1,57 @@
-import './quiz_api.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dio/dio.dart';
+import 'dart:convert';
 
 class QuizService {
   static SharedPreferences? _prefs;
-  static Dio _dio = Dio();
 
-  static Future<List<Map<String, dynamic>>> getTopics() async {
+  Future<List<Map<String, dynamic>>> getTopics(http.Client client) async {
     try {
-      Response response = await _dio.get('https://dad-quiz-api.deno.dev/topics');
-      List<dynamic> data = response.data;
-      List<Map<String, dynamic>> topics = List<Map<String, dynamic>>.from(data);
-      return topics;
+      final response = await client.get(Uri.parse('https://dad-quiz-api.deno.dev/topics'));
+      if (response.statusCode == 200) {
+        List<Map<String, dynamic>> topics = List<Map<String, dynamic>>.from(json.decode(response.body));
+        return topics;      
+      } else {
+      print('Failed to load topics: ${response.statusCode}');
+      return [];
+    }
     } catch (error) {
       print('Error fetching topics: $error');
       return [];
     }
   }
 
-  static Future<Map<String, dynamic>> getQuestion(Map<String, dynamic> topic) async {
+  Future<Map<String, dynamic>> getQuestion(Map<String, dynamic> topic, http.Client client) async {
     try {
       String questionPath = topic['question_path'];
-      Response response = await _dio.get('https://dad-quiz-api.deno.dev$questionPath');
-      Map<String, dynamic> question = response.data;
-      return question;
+      final response = await client.get(Uri.parse('https://dad-quiz-api.deno.dev$questionPath'));
+     
+      if (response.statusCode == 200) {
+        Map<String, dynamic> question = Map<String, dynamic>.from(json.decode(response.body));
+        return question;
+      } else {
+        print('Failed to load question: ${response.statusCode}');
+        return Future.error('Failed to load question: ${response.statusCode}');
+      }
     } catch (error) {
       print('Error fetching question: $error');
       return Future.error('Error fetching question: $error');
     }
   }
 
-  static Future<Map<String, dynamic>> postAnswer(
-    String topic,
+  Future<Map<String, dynamic>> postAnswer(
+    String topicId,
     int questionId,
     String answer,
+    http.Client client
   ) async {
     try {
-      Response response = await _dio.post(
-        'https://dad-quiz-api.deno.dev/topics/$topic/questions/$questionId/answers',
-        data: {'answer': answer},
-      );
-      Map<String, dynamic> responseData = response.data;
+      final response = await client.post(
+        Uri.parse('https://dad-quiz-api.deno.dev/topics/$topicId/questions/$questionId/answers'), 
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: jsonEncode({"answer": answer})); 
+
+      Map<String, dynamic> responseData = Map<String, dynamic>.from(json.decode(response.body));
 
       if (responseData['correct'] == true) {
         _prefs ??= await SharedPreferences.getInstance();
@@ -55,7 +66,7 @@ class QuizService {
       return responseData;
     } catch (error) {
       print('Error posting answer: $error');
-      return {}; // Return an empty map or handle the error as needed
+      return {};
     }
   }
 
@@ -76,10 +87,9 @@ class QuizService {
     _prefs!.setInt('totalCorrectAnswers', currentTotal + 1);
   }
   
-  static Future<int?> getTopicId(String topicName) async {
+  Future<int?> getTopicId(String topicName) async {
     try {
-      List<Map<String, dynamic>> topics = await getTopics();
-      print('All topics: $topics');
+      List<Map<String, dynamic>> topics = await getTopics(http.Client());
       
       int topicIndex = topics.indexWhere((topic) => topic['name'] == topicName);
       if (topicIndex != -1) {

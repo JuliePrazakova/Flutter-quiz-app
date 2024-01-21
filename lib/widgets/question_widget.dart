@@ -2,23 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/quiz_service.dart';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+
 
 class QuestionWidget extends StatefulWidget {
   final Map<String, dynamic> topic;
 
-  QuestionWidget({required this.topic});
+  const QuestionWidget({Key? key, required this.topic}) : super(key: key);
 
   @override
-  _QuestionWidgetState createState() => _QuestionWidgetState();
+  QuestionWidgetState createState() => QuestionWidgetState();
 }
 
-class _QuestionWidgetState extends State<QuestionWidget> {
+class QuestionWidgetState extends State<QuestionWidget> {
   Map<String, dynamic>? _questionData;
   late Map<String, dynamic> _topic;
   bool _isAnswerSubmitted = false;
   bool _isAnswerCorrect = false;
   bool _isFirstAnswer = true;
-  bool _isGenericOn = false;
 
   SharedPreferences? _prefs; 
 
@@ -31,6 +32,12 @@ class _QuestionWidgetState extends State<QuestionWidget> {
     _loadUserProgress();
   }
 
+   void updateQuestion(Map<String, dynamic> newQuestion) {
+    setState(() {
+      _questionData = newQuestion;
+    });
+  }
+
   void _initSharedPreferences() async {
     _prefs = await SharedPreferences.getInstance();
   }
@@ -38,7 +45,6 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   void _loadUserProgress() async {
     _isFirstAnswer = _prefs?.getBool('isFirstAnswer') ?? true;
     _isAnswerCorrect = _prefs?.getBool('isAnswerCorrect') ?? false;
-    _isGenericOn = _prefs?.getBool('isGenericOn') ?? false;
   }
 
   void _loadQuestion() async {
@@ -51,16 +57,19 @@ class _QuestionWidgetState extends State<QuestionWidget> {
 
     try {
         if (_prefs?.getBool('isGenericOn') == true) {
-          List<Map<String, dynamic>> topics = await QuizService.getTopics();
+          QuizService quizService = QuizService();
+          List<Map<String, dynamic>> topics = await quizService.getTopics(http.Client());  
+
           Map<String, dynamic> foundTopic = _findLeastKnownTopic(topics);
-          Map<String, dynamic> questionData = await QuizService.getQuestion(foundTopic);
+          Map<String, dynamic> questionData = await quizService.getQuestion(foundTopic, http.Client());
           setState(() {
             _topic = foundTopic;
             _questionData = questionData;
             _prefs?.setBool('isFirstAnswer', true);
           });   
         } else {
-          Map<String, dynamic> questionData = await QuizService.getQuestion(_topic);
+          QuizService quizService = QuizService();
+          Map<String, dynamic> questionData = await quizService.getQuestion(_topic, http.Client());
           setState(() {
             _questionData = questionData;
             _prefs?.setBool('isFirstAnswer', true);
@@ -71,12 +80,14 @@ class _QuestionWidgetState extends State<QuestionWidget> {
     }
   }
 
-  void _submitAnswer(String answer) async {
+  void submitAnswer(String answer) async {
     try {
-      Map<String, dynamic> response = await QuizService.postAnswer(
+      QuizService quizService = QuizService();
+      Map<String, dynamic> response = await quizService.postAnswer(
         _topic['id'].toString(),
         _questionData!['id'],
         answer,
+        http.Client()
       );
 
       setState(() {
@@ -115,32 +126,32 @@ class _QuestionWidgetState extends State<QuestionWidget> {
   @override
   Widget build(BuildContext context) {
     if (_questionData == null) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
 
     return Column(
       children: [
         Text(
           _topic['name'],
-          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
         ),
         Padding(
-          padding: EdgeInsets.all(5.0),
+          padding: const EdgeInsets.all(5.0),
           child: Text(_questionData!['question']),
         ),
-        if (_questionData!['image_url'] != null) // Check if image URL is available
-        Image.network(_questionData!['image_url']), // Display the image
+        if (_questionData!['image_url'] != null) 
+        Image.network(_questionData!['image_url']), 
         Column(
           children: List.generate(
             _questionData!['options'].length,
             (index) => Padding(
-              padding: EdgeInsets.symmetric(vertical: 4.0), 
-              child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 4.0), 
+              child: SizedBox(
                 width: 200.0, 
                 child: ElevatedButton(
                   onPressed: () {
                     if (!_isAnswerCorrect) {
-                      _submitAnswer(_questionData!['options'][index]);
+                      submitAnswer(_questionData!['options'][index]);
                     }
                   },
                   child: Text(_questionData!['options'][index]),
@@ -152,7 +163,7 @@ class _QuestionWidgetState extends State<QuestionWidget> {
         if (_isAnswerSubmitted && _isAnswerCorrect == true)
           Column(
             children: [
-              Padding(
+              const Padding(
                 padding: EdgeInsets.all(10.0),
                 child: Text('Your answer was correct'),
               ),
@@ -160,12 +171,12 @@ class _QuestionWidgetState extends State<QuestionWidget> {
                 onPressed: () {
                   _loadQuestion();
                 },
-                child: Text('Move to the next question'),
+                child: const Text('Move to the next question'),
               ),
             ],
           ),
         if (_isAnswerSubmitted && _isAnswerCorrect == false)
-          Padding(
+          const Padding(
             padding: EdgeInsets.all(10.0),
             child: Text('Your answer was incorrect'),
           ),
