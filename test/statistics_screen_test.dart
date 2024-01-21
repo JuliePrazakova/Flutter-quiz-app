@@ -1,14 +1,11 @@
 import 'package:Quiz_app/screens/statistics_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:nock/nock.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Quiz_app/services/quiz_service.dart';
 import 'package:http/http.dart' as http;
 
-
-class MockSharedPreferences extends Mock implements SharedPreferences {}
 
 void main() {
    setUpAll(() {
@@ -21,6 +18,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+// test number 4 and 5 together 
     testWidgets('StatisticsScreen displays correct texts', (WidgetTester tester) async {
         nock.get('/topics').reply(200, [
               {"id": 1, "name": "Basic arithmetics", "question_path": "/topics/1/questions"},

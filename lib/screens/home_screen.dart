@@ -172,7 +172,7 @@ Widget _buildTopicList() {
     );
   }
 
-  Map<String, dynamic> _findLeastKnownTopic(List<Map<String, dynamic>> topics) {
+  Map<String, dynamic> findLeastKnownTopic(List<Map<String, dynamic>> topics) {
     List<Map<String, dynamic>> leastKnownTopics = [];
     double minCorrectAnswers = double.infinity;
 
@@ -188,10 +188,14 @@ Widget _buildTopicList() {
       }
     }
 
-    final random = Random();
-    int randomIndex = random.nextInt(leastKnownTopics.length);
-
-    return leastKnownTopics[randomIndex];
+     if (leastKnownTopics.isNotEmpty) {
+        final random = Random();
+        int randomIndex = random.nextInt(leastKnownTopics.length);
+        return leastKnownTopics[randomIndex];
+      } else {
+        print("no topics available");
+        return {}; 
+      }
   }
 
   void _practiceNotGoodTopics(BuildContext context) async {
@@ -210,9 +214,13 @@ Widget _buildTopicList() {
       QuizService quizService = QuizService();
 
       List<Map<String, dynamic>> topics = await quizService.getTopics(http.Client());
-      Map<String, dynamic> foundTopic = _findLeastKnownTopic(topics);
+      Map<String, dynamic> foundTopic = findLeastKnownTopic(topics);
 
-      _navigateToQuestionPage(foundTopic);
+      if (foundTopic.isNotEmpty) {
+        _navigateToQuestionPage(foundTopic);
+      } else {
+        print("No topics available, cannot route");
+      }    
     }
   }
 }

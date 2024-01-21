@@ -20,7 +20,7 @@ void main() {
     nock.cleanAll();
     SharedPreferences.setMockInitialValues({});
   });
-
+// test number 2
    testWidgets("Display QuestionScreen with Title and 2 Icon Buttons", (WidgetTester tester) async {
         Map<String, dynamic> topic = {"id": 1, "name": "Basic arithmetics", "question_path": "/topics/1/questions"};
 
@@ -37,6 +37,7 @@ void main() {
         expect(find.byIcon(Icons.bar_chart), findsOneWidget);
   });
 
+// test number 2 and 3 together
     testWidgets('Displays question', (tester) async {
        SharedPreferences.setMockInitialValues({
           'isAnswerSubmitted': false,

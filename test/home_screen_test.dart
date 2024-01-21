@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nock/nock.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mockito/mockito.dart'; 
+
+
+class MockNavigator extends Mock implements NavigatorObserver {}
 
 void main() {
   setUpAll(() {
@@ -13,8 +18,10 @@ void main() {
 
   setUp(() {
     nock.cleanAll();
+    SharedPreferences.setMockInitialValues({});
   });
 
+  // test number 1 
   testWidgets("Display HomeScreen with Title, description and Generic practice button", (WidgetTester tester) async {
 
    const app = MaterialApp(
@@ -38,6 +45,7 @@ void main() {
     expect(topicFinder, findsOneWidget);
   });
 
+// test number 1
   testWidgets('Display no topics available text', (tester) async {
       nock.get('/topics').reply(200, []);
       final quizService = QuizService();
@@ -60,6 +68,8 @@ void main() {
 
         expect(find.text('No topics available'), findsOne);
   });
+
+  // test nu ber 1
     testWidgets('Displays topics', (tester) async {
       nock.get('/topics').reply(200, [
         {"id": 1, "name": "Basic arithmetics", "question_path": "/topics/1/questions"},
@@ -91,5 +101,56 @@ void main() {
         expect(find.widgetWithText(ElevatedButton, 'Countries and capitals'), findsOneWidget);
         expect(find.widgetWithText(ElevatedButton, 'Countries and continents'), findsOneWidget);
         expect(find.widgetWithText(ElevatedButton, 'Dog breeds'), findsOneWidget);
+      });   
+
+// test number 6
+    testWidgets('Test that generic option returns a least known topic', (tester) async {
+       final navigatorMock = MockNavigator();
+      nock.get('/topics').reply(200, [
+        {"id": 1, "name": "Basic arithmetics", "question_path": "/topics/1/questions"},
+        {"id": 2, "name": "Countries and capitals", "question_path": "/topics/2/questions"},
+        {"id": 3, "name": "Countries and continents", "question_path": "/topics/3/questions"},
+        {"id": 4, "name": "Dog breeds", "question_path": "/topics/4/questions"}
+      ]);
+
+        final SharedPreferences testSharedPreferences = await SharedPreferences.getInstance();
+        testSharedPreferences.setInt('totalCorrectAnswers', 10);
+        testSharedPreferences.setInt('topic_Basic arithmetics', 5);
+        testSharedPreferences.setInt('topic_Countries and capitals', 8);
+        testSharedPreferences.setInt('topic_Countries and continents', 8);
+        testSharedPreferences.setInt('topic_Dog breeds', 2);
+        testSharedPreferences.setBool('isGenericOn', false);
+
+        final quizService = QuizService();
+        final topics = await quizService.getTopics(http.Client());
+        expect(topics, isA<List<Map<String, dynamic>>>());
+
+        final app = MaterialApp(
+          home: const HomeScreen(),
+          navigatorObservers: [navigatorMock],
+        );
+
+        await tester.pumpWidget(app);
+        await tester.pump();
+
+        final homeScreenState = tester.state<HomeScreenState>(find.byType(HomeScreen));
+
+        homeScreenState.updateTopics(topics);
+        await tester.pump();
+
+        expect(testSharedPreferences.getInt('totalCorrectAnswers'), 10);
+        expect(testSharedPreferences.getInt('topic_Basic arithmetics'), 5);
+        expect(testSharedPreferences.getInt('topic_Countries and capitals'), 8);
+        expect(testSharedPreferences.getInt('topic_Countries and continents'), 8);
+        expect(testSharedPreferences.getInt('topic_Dog breeds'), 2);
+
+        await tester.tap(find.widgetWithText(ElevatedButton,'Generic practice'));
+
+        await tester.pumpAndSettle();
+        await tester.pump();
+
+        expect(testSharedPreferences.getBool('isGenericOn'), true);
+        final foundTopic = homeScreenState.findLeastKnownTopic(topics);
+        expect(foundTopic['name'], "Dog breeds");
       });      
 }
