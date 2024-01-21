@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main 
-  pull_request:
 
 jobs:
   deploy:
@@ -17,10 +16,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2  
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v2.10
         with:
-            flutter-version: '2.8.0' 
+          sdk: '3.0.0'
+
+      - name: Install dependencies
+        run: dart pub get
 
       - name: Build
         run: flutter build web --web-renderer html --base-href "/deploy-demo/"
